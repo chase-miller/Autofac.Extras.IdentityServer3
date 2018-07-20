@@ -3,7 +3,7 @@
   <metadata>
     <id>Autofac.Extras.IdentityServer3</id>
     <version>$version$</version>
-    <title>$title$</title>
+    <title>Autofac.Extras.IdentityServer3</title>
     <authors>Chase Miller</authors>
     <owners>Chase Miller</owners>
     <licenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</licenseUrl>
