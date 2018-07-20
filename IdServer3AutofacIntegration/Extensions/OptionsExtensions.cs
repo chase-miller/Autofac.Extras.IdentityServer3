@@ -74,18 +74,6 @@ namespace IdServer3AutofacIntegration.Extensions
             );
         }
 
-        public static Options ExcludingControllers(this Options options)
-        {
-            //TODO - fix this
-            return options;
-//            return options.ExcludingTypeAssignableTo<ApiController>();
-        }
-
-        public static Options ExcludingOwinMiddleware(this Options options)
-        {
-            return options.ExcludingTypeAssignableTo<OwinMiddleware>();
-        }
-
         public static Options ExcludingTypeAssignableTo<T>(this Options options)
         {
             return options.Excluding(type => typeof(T).IsAssignableFrom(type));
