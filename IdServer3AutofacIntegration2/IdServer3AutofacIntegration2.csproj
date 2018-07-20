@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="4.8.1" />
+    <PackageReference Include="Autofac.Owin" Version="4.2.0" />
+    <PackageReference Include="IdentityServer3" Version="2.5.1" />
+    <PackageReference Include="Microsoft.Owin" Version="3.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Core\" />
+    <Folder Include="Extensions\" />
+  </ItemGroup>
+
+</Project>
