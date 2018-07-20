@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("IdServer3AutofacIntegration")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Use your own autofac container with IdServer3")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("IdServer3AutofacIntegration")]
