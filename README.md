@@ -59,3 +59,21 @@ namespace FL.IDM.IdentityGateway
   }
 
 ```
+
+## How It Works
+Calling `factory.ResolveUsingAutofac(container)` will read the registrations contained on the `container` and create corresponding registrations with the factory. Unless registering as a singleton, dependencies are resolved using a factory func that:
+
+1. Resolves the `IOwinContext`. E.g. `dr.Resolve<IOwinContext>()`. 
+2. Gets the autofac scope associated with the current IOwinContext using the `IOwinContext.GetAutofacLifetimeScope()` extension method.
+3. Resolves the requested service using a `Resolve` method off the lifetime scope. E.g. `scope.Resolve<T>()`. 
+
+This may add a bit of overhead when processing a request but should be negligible (example statistics are welcomed :-)). 
+
+Autofac lifetime scopes are matched up with factory scopes as follows: 
+
+| Autofac | IdServer Factory |
+| ------  | ---------------- |
+| SingleInstance | Singleton |
+| InstancePerDependency | InstancePerUse |
+| InstancePerRequest | InstancePerHttpRequest |
+| InstancePerLifetimeScope | InstancePerHttpRequest |
