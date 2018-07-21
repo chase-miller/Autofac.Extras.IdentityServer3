@@ -6,7 +6,6 @@
     <title>Autofac.Extras.IdentityServer3</title>
     <authors>Chase Miller</authors>
     <owners>Chase Miller</owners>
-    <licenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</licenseUrl>
     <projectUrl>https://github.com/chase-miller/idserver3-autofac-integration</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
