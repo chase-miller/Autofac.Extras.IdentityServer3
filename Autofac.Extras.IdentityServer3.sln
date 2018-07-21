@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdServer3AutofacIntegration", "IdServer3AutofacIntegration\IdServer3AutofacIntegration.csproj", "{3340DD71-2975-42E1-BE8C-EFD78AB825DA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Autofac.Extras.IdentityServer3", "Autofac.Extras.IdentityServer3\Autofac.Extras.IdentityServer3.csproj", "{3340DD71-2975-42E1-BE8C-EFD78AB825DA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

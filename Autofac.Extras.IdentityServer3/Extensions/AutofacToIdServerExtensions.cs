@@ -1,11 +1,10 @@
 ﻿using System.Linq;
-using Autofac;
 using Autofac.Builder;
+using Autofac.Extras.IdentityServer3.Core;
 using IdentityServer3.Core.Extensions;
-using IdServer3AutofacIntegration.Core;
 using Microsoft.Owin;
 
-namespace IdServer3AutofacIntegration.Extensions
+namespace Autofac.Extras.IdentityServer3.Extensions
 {
     public static class AutofacToIdServerExtensions
     {

@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Linq;
-using Autofac;
 using Autofac.Core;
 using Autofac.Core.Lifetime;
+using Autofac.Extras.IdentityServer3.Core;
 using Autofac.Integration.Owin;
 using IdentityServer3.Core.Configuration;
 using IdentityServer3.Core.Services;
-using IdServer3AutofacIntegration.Core;
 using Microsoft.Owin;
 using Owin;
 
-namespace IdServer3AutofacIntegration.Extensions
+namespace Autofac.Extras.IdentityServer3.Extensions
 {
     public static class TypeRegistrationExtensions
     {
@@ -176,7 +175,7 @@ namespace IdServer3AutofacIntegration.Extensions
 
         public static void RegisterAsAutofacResolvable<T>(this IdentityServerServiceFactory factory, Func<ILifetimeScope, T> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, T> resolveWithOwinContextFunc = null, string name = null, IContainer container = null, RegistrationContext context = null) where T : class
         {
-            factory.Register(CreateRegistration<T>(resolveWithLifetimeScopeFunc, resolveWithOwinContextFunc, name, container, context));
+            factory.Register(CreateRegistration(resolveWithLifetimeScopeFunc, resolveWithOwinContextFunc, name, container, context));
         }
 
         public static RegistrationMode ConvertMode(this RegistrationContext context)

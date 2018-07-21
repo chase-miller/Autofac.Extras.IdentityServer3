@@ -7,8 +7,8 @@
     <ProjectGuid>{3340DD71-2975-42E1-BE8C-EFD78AB825DA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>IdServer3AutofacIntegration</RootNamespace>
-    <AssemblyName>IdServer3AutofacIntegration</AssemblyName>
+    <RootNamespace>Autofac.Extras.IdentityServer3</RootNamespace>
+    <AssemblyName>Autofac.Extras.IdentityServer3</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -69,7 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="IdServer3AutofacIntegration.nuspec" />
+    <None Include="Autofac.Extras.IdentityServer3.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
