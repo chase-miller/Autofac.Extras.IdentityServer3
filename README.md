@@ -25,21 +25,22 @@ namespace FL.IDM.IdentityGateway
         {
             // Create a ContainerBuilder and register dependencies.
             var builder = new ContainerBuilder();
-            builder.RegisterModule(new IdServerExtensionsModule(logger, authenticationEventsLogger, efConfig));
+            builder.RegisterModule(new IdServerExtensionsModule());
+            builder.RegisterModule(new SomeOtherModule());
 
             // Build the container
             var container = builder.Build();
             
-            // Create a blank factory
+            // Create a blank factory. To set a service (e.g. IUserService) register it via autofac. See IdServerExtensionsModule class.
             var factory = new IdentityServerServiceFactory();
             
             // Use the container built above to setup the factory
             factory.ResolveUsingAutofac(container);
 
-            var idSrvOptions = GetIdentityServerOptions(factory, dataProtector);
-
             var config = GetHttpConfiguration();
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
+
+            var idSrvOptions = GetIdentityServerOptions(factory);
 
             // Run any registered middleware within IdServer's context
             idSrvOptions.PluginConfiguration = (appBuilder, options) =>
@@ -58,6 +59,38 @@ namespace FL.IDM.IdentityGateway
       }
   }
 
+```
+
+And the autofac module:
+
+```csharp
+public class IdServerExtensionsModule : Module
+{
+    protected override void Load(ContainerBuilder builder)
+    {
+        // Don't forget to register all required types.
+        builder.RegisterType<UserService>()
+            .As<IUserService>()
+            .InstancePerRequest();
+            
+        builder.RegisterType<InMemoryScopeStore>()
+            .As<IScopeStore>()
+            .InstancePerRequest();
+            
+        builder.Register(cc => new ClientStore(cc.Resolve<IClientConfigurationDbContext>(), cc.Resolve<IMyDbContext>(), cc.Resolve<ILogger>()))
+            .As<IClientStore>()
+            .InstancePerRequest();
+
+        // And any other optional ones you may want
+        builder.Register(cc =>
+                new ClaimsProvider(cc.Resolve<IUserService>(), cc.Resolve<IScopeProcessor>(), Scopes.Get()))
+            .As<IClaimsProvider>()
+            .InstancePerRequest();
+        
+        // If your services depend on any IdServer services (that are registered in its internal autofac container), use this extension method to make them accessible.
+        builder.RegisterAsIdServerResolvable<IClientConfigurationDbContext>();
+    }
+}
 ```
 
 ## How It Works
