@@ -84,14 +84,6 @@ There are two primary extension points provided off the `Options` object:
 1. `WithRegistrationHandler(Predicate<RegistrationContext> predicate, RegistrationAction registrationAction, int? priority = null)` Given a registration context that matches the predicate, how do we want to register that context with the factory?
 2. `UsingTypeResolution(TryResolveType resolutionFunc)` - Given a registration context, to what type does the corresponding autofac service resolve? The output of this function will set the `ResolvedType` property on the `RegistrationContext`, which can be used by the above registration handler.
 
-### Ordering
-Both extension points can be chained. In other words, multiple items can be registered (see example below). But only one handler is chosen and only one type resolver is used to determine the type. So which one is chosen?
-
-| Extension Point | Item Chosen | Example |
-| --------------- | ----------- | ------- |
-| Registration Handler | The last item registered whose predicate returns true. Unless a higher priority item exists whose predicate returns true (in which case the higher priority wins). | ```asdf ``` |
-| Type Resolve | The last item registered whose resolver returns true | ```ssdf``` |
-
 ### Example
 Note that some of these methods are actually extension methods off of the two extension points above. There are plenty more examples in this repo.
 
@@ -134,3 +126,52 @@ public static class IdServerAutofacExtensions
     }
 ```
 
+### Ordering
+Both extension points can be chained. In other words, multiple items can be registered (see example below). But only one handler is chosen and only one type resolver is used to determine the type. So which one is chosen?
+
+
+#### Registration Handler
+The last item registered whose predicate returns true wins. Unless a higher priority item exists whose predicate returns true (in which case the higher priority wins).
+
+Given an `ILogger` registered with autofac, when evaluating which handler to choose:
+
+```csharp
+factory.ResolveUsingAutofac(container,
+                options => options
+                    // Order 3 - Despite the predicate returning true, there are other eligible handlers registered after (and at a higher priority)
+                    .WithRegistrationHandler(context => context.ResolvedType == typeof(ILogger), (factory, context) => MyHandle(factory, context))
+                    // Order 1 - Wins because of priority (and predicate returns true)
+                    .WithRegistrationHandler(context => context.ResolvedType == typeof(ILogger), (factory, context) => MyHandle(factory, context), 15)
+                    // Order 2 - Would have been executed because it's last registered, but the second one has a higher priority (0 if none specified).
+                    .WithRegistrationHandler(context => context.ResolvedType == typeof(ILogger), (factory, context) => MyHandle(factory, context))
+                    // Not eligible - predicate returns false given an ILogger.
+                    .WithRegistrationHandler(context => context.ResolvedType == typeof(SomeOtherType), (factory, context) => MyHandle(factory, context))
+            );
+```
+
+
+### Type Resolver
+The last item registered whose resolver returns true wins.
+
+```csharp
+factory.ResolveUsingAutofac(container,
+                options => options
+                    .UsingTypeResolution((IGrouping<Service, IComponentRegistration> grouping, out Type type) =>
+                    {
+                        type = typeof(object);
+                        return true;
+                    })
+                    // Wins because it's the last registered that returns true
+                    .UsingTypeResolution((IGrouping<Service, IComponentRegistration> grouping, out Type type) =>
+                    {
+                        type = typeof(object);
+                        return true;
+                    })
+                    // Would have won but returns false
+                    .UsingTypeResolution((IGrouping<Service, IComponentRegistration> grouping, out Type type) =>
+                    {
+                        type = typeof(object);
+                        return false;
+                    })
+            );
+```
