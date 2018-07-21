@@ -9,7 +9,7 @@
     <projectUrl>https://github.com/chase-miller/idserver3-autofac-integration</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Initial release.</releaseNotes>
+    <releaseNotes>Adjusted namespacing</releaseNotes>
     <copyright>Copyright 2018</copyright>
   </metadata>
 </package>

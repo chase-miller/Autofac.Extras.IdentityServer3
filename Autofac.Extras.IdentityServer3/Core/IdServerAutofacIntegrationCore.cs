@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Autofac;
 using Autofac.Core;
 using IdentityServer3.Core.Configuration;
 using IdentityServer3.Core.Services;
 using Microsoft.Owin;
 
-namespace IdServer3AutofacIntegration.Core
+namespace Autofac.Extras.IdentityServer3.Core
 {
     public delegate bool TryResolveType(IGrouping<Service, IComponentRegistration> serviceGrouping, out Type type);
     public delegate void RegistrationAction(IdentityServerServiceFactory factory, RegistrationContext context);

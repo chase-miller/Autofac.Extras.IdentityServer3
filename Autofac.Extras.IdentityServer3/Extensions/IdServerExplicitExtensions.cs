@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Autofac.Extras.IdentityServer3.Core;
 using IdentityServer3.Core.Configuration;
 using IdentityServer3.Core.Services;
-using IdServer3AutofacIntegration.Core;
 
-namespace IdServer3AutofacIntegration.Extensions
+namespace Autofac.Extras.IdentityServer3.Extensions
 {
     public static class IdServerExplicitExtensions
     {

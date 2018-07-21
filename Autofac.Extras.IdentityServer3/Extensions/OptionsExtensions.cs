@@ -1,8 +1,7 @@
 ﻿using System;
-using IdServer3AutofacIntegration.Core;
-using Microsoft.Owin;
+using Autofac.Extras.IdentityServer3.Core;
 
-namespace IdServer3AutofacIntegration.Extensions
+namespace Autofac.Extras.IdentityServer3.Extensions
 {
     public static class OptionsExtensions
     {

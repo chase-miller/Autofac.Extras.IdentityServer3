@@ -1,14 +1,11 @@
 ﻿using System;
-using Autofac;
+using Autofac.Extras.IdentityServer3.Core;
 using IdentityServer3.Core.Configuration;
-using IdServer3AutofacIntegration.Core;
 
-namespace IdServer3AutofacIntegration.Extensions
+namespace Autofac.Extras.IdentityServer3.Extensions
 {
     public static class BasicExtensions
     {
-        private static bool _hackExecuted = false;
-
         /// <summary>
         /// Creates IdServer factory registrations using the registrations on the provided container. 
         /// When evaluating a registration's services for types, <see cref="TypeRegistrationExtensions.ResolvingByCastingToTypedService"/> is used by default.
@@ -30,7 +27,8 @@ namespace IdServer3AutofacIntegration.Extensions
                 container, 
                 options =>
                 {
-                    var myOptions = TypeRegistrationExtensions.ResolvingByCastingToTypedService(options)
+                    var myOptions = options
+                            .ResolvingByCastingToTypedService()
                             .WithTypeRegistrationHandler()
                             .RegisteringIdServerExtensionPointsExplicitly()
                             .ExcludingIdServerResolvableRegistrations()
