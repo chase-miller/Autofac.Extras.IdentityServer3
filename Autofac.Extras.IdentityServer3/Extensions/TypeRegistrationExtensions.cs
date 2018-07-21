@@ -240,6 +240,13 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                 }
             });
         }
+
+        public static Options RegisteringOnlyIdServerTypes(this Options options)
+        {
+            return options.Excluding(
+                context => context?.ResolvedType?.Namespace?.StartsWith(nameof(IdentityServer3)) == false
+            );
+        }
     }
 
     public class CustomIdServerRegistration : Registration<object>
