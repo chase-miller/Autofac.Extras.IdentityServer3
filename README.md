@@ -100,7 +100,6 @@ Calling `factory.ResolveUsingAutofac(container)` will read the registrations con
 2. Gets the autofac scope associated with the current IOwinContext using the `IOwinContext.GetAutofacLifetimeScope()` extension method.
 3. Resolves the requested service using a `Resolve` method off the lifetime scope. E.g. `scope.Resolve<T>()`. 
 
-This may add a bit of overhead when processing a request but should be negligible (example statistics are welcomed :-)). 
 
 Autofac lifetime scopes are matched up with factory scopes as follows: 
 
@@ -110,6 +109,21 @@ Autofac lifetime scopes are matched up with factory scopes as follows:
 | InstancePerDependency | InstancePerUse |
 | InstancePerRequest | InstancePerHttpRequest |
 | InstancePerLifetimeScope | InstancePerHttpRequest |
+
+### Performance
+The process outlined above may add a bit of overhead when processing a request, but it should be negligible (example statistics are welcomed :-)).
+
+Another note about performance: all autofac registrations you create (for which a handler exists) will create a registration in IdentityServer3. Internally, IdentityServer3 uses autofac. This means that there will be registrations in IdentityServer3 that are never actually used. Aside from the memory consumption of the registration, I'm fairly certain there isn't a cost to these extra registrations as autofac only resolves a registration when needed.
+
+That said, there is an extension method you can call that restrics registrations to only types in the `IdentityServer3` namespace. This is largely untested, and I don't know exactly the results.
+
+```csharp
+factory.ResolveUsingAutofac(container,
+                options => options
+                    .RegisteringOnlyIdServerTypes()
+                    // other handlers...
+            );
+```
 
 ## Extension Points
 There are two primary extension points provided off the `Options` object:
