@@ -105,12 +105,13 @@ Calling `factory.ResolveUsingAutofac(container)` will read the registrations con
 
 Autofac lifetime scopes are matched up with factory scopes as follows: 
 
-| Autofac | IdServer Factory |
+| Autofac Scope | IdServer Factory Scope |
 | ------  | ---------------- |
 | SingleInstance | Singleton |
 | InstancePerDependency | InstancePerUse |
 | InstancePerRequest | InstancePerHttpRequest |
 | InstancePerLifetimeScope | InstancePerHttpRequest |
+| * **Anything Else** | InstancePerUse |
 
 ### Performance
 The process outlined above may add a bit of overhead when processing a request, but it should be negligible (example statistics are welcomed :-)).
