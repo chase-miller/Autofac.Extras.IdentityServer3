@@ -229,13 +229,11 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                 }
                 finally
                 {
-                    if (context.Environment.TryGetValue(CustomDisposeLifetimescopeKey, out var shouldDisposeObj))
+                    var shouldDispose = context.Get<bool>(CustomDisposeLifetimescopeKey);
+                    if (shouldDispose)
                     {
-                        if (shouldDisposeObj is bool shouldDispose && shouldDispose)
-                        {
-                            var lifetimeScope = context.GetAutofacLifetimeScope();
-                            lifetimeScope?.Dispose(); 
-                        }
+                        var lifetimeScope = context.GetAutofacLifetimeScope();
+                        lifetimeScope?.Dispose();
                     }
                 }
             });
