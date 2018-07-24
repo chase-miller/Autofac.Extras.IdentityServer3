@@ -199,7 +199,7 @@ factory.ResolveUsingAutofac(container,
 ```
 
 
-### Type Resolver
+#### Type Resolver
 The last item registered whose resolver returns true wins.
 
 ```csharp
