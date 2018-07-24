@@ -6,7 +6,7 @@
     <title>Autofac.Extras.IdentityServer3</title>
     <authors>Chase Miller</authors>
     <owners>Chase Miller</owners>
-    <projectUrl>https://github.com/chase-miller/idserver3-autofac-integration</projectUrl>
+    <projectUrl>https://github.com/chase-miller/Autofac.Extras.IdentityServer3</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>Adjusted namespacing</releaseNotes>
