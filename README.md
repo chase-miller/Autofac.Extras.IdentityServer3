@@ -19,7 +19,7 @@ app.UseIdServerAutofacIntegrationMiddleware();
 ```csharp
 [assembly: OwinStartup(typeof(Startup))]
 
-namespace FL.IDM.IdentityGateway
+namespace MyIdServer
 {
     public class Startup
     {
