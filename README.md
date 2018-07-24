@@ -1,7 +1,9 @@
-# idserver3-autofac-integration
-Use your own autofac container with IdServer3
+# Autofac.Extras.IdentityServer3
+Use your own autofac container with IdentityServer3
 
 ## Usage
+Install the nuget package - https://www.nuget.org/packages/Autofac.Extras.IdentityServer3/.
+
 In your startup configuration, call a method to have the IdentityServer3 factory use your container:
 ```csharp
 factory.ResolveUsingAutofac(container);
