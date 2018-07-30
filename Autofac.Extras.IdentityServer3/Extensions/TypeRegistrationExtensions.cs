@@ -144,26 +144,6 @@ namespace Autofac.Extras.IdentityServer3.Extensions
             if (lifetimeScope != null)
                 return lifetimeScope;
 
-            var middlewareIsRegistered = owinContext.Environment.ContainsKey(CustomDisposeLifetimescopeRegisteredKey);
-            if (container != null && (middlewareIsRegistered || !checkForMiddleware))
-            {
-                // This makes me nervous...especially because we're not disposing the lifetimeScope in the same way as https://github.com/autofac/Autofac.Owin/blob/1e6eab35b59bc3838bbd2f6c7653d41647649b01/src/Autofac.Integration.Owin/AutofacAppBuilderExtensions.cs#L414.
-                lifetimeScope = container.BeginLifetimeScope(
-                    MatchingScopeLifetimeTags.RequestLifetimeScopeTag,
-                    b => b.RegisterInstance(owinContext).As<IOwinContext>());
-                owinContext.SetAutofacLifetimeScope(lifetimeScope);
-                owinContext.Set(CustomDisposeLifetimescopeKey, true);
-                return lifetimeScope;
-            }
-
-            if (container != null && !middlewareIsRegistered)
-            {
-                throw new ApplicationException(
-                    $"Could not get autofac lifetime scope from owin context. A container was provided, " +
-                    $"but cleanup middleware was not registered. " +
-                    $"Be sure to call {nameof(UseIdServerAutofacIntegrationMiddleware)} in startup before {nameof(AutofacAppBuilderExtensions.UseAutofacMiddleware)}.");
-            }
-
             throw new ApplicationException(
                 $"Could not get autofac lifetime scope from owin context when trying to resolve {type}.");
         }
@@ -218,31 +198,45 @@ namespace Autofac.Extras.IdentityServer3.Extensions
         /// <param name="appBuilder"></param>
         /// <param name="container"></param>
         /// <returns></returns>
+        [Obsolete("Make sure app.UseAutofacMiddleware() and/or app.UseAutofacLifetimeScopeInjector() is called before app.UseIdentityServer() and remove the call to this method.")]
         public static IAppBuilder UseIdServerAutofacIntegrationMiddleware(this IAppBuilder appBuilder)
         {
-            return appBuilder.Use(async (context, next) =>
-            {
-                try
-                {
-                    context.Environment.Add(CustomDisposeLifetimescopeRegisteredKey, true);
-                    await next();
-                }
-                finally
-                {
-                    var shouldDispose = context.Get<bool>(CustomDisposeLifetimescopeKey);
-                    if (shouldDispose)
-                    {
-                        var lifetimeScope = context.GetAutofacLifetimeScope();
-                        lifetimeScope?.Dispose();
-                    }
-                }
-            });
+            // no-op TODO - (delete this method on next major version).
+            return appBuilder;
         }
 
         public static Options RegisteringOnlyIdServerTypes(this Options options)
         {
             return options.Excluding(
                 context => context?.ResolvedType?.Namespace?.StartsWith(nameof(IdentityServer3)) == false
+            );
+        }
+
+        /// <summary>
+        /// IdentityServer3 creates a fake owin context at startup to resolve IEventService. Use this to get around the fact that we don't have an autofac container yet.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static Options HackingEventServiceForStartup(this Options options)
+        {
+            return options.WithRegistrationHandlerFor<IEventService>(
+                (factory, context) =>
+                {
+                    factory.RegisterAsAutofacResolvable<IEventService>(resolveWithOwinContextFunc: owinContext =>
+                        {
+                            var lifetimeScope = owinContext.GetAutofacLifetimeScope();
+                            if (lifetimeScope != null)
+                                return lifetimeScope.Resolve<IEventService>();
+
+                            var startupScope = context.Container.BeginLifetimeScope(
+                                MatchingScopeLifetimeTags.RequestLifetimeScopeTag,
+                                b => b.RegisterInstance(owinContext).As<IOwinContext>()
+                            );
+                            owinContext.SetAutofacLifetimeScope(startupScope);
+                            return startupScope.Resolve<IEventService>();
+                        });
+                },
+                100
             );
         }
     }
