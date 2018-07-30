@@ -9,9 +9,11 @@ In your startup configuration, call a method to have the IdentityServer3 factory
 factory.ResolveUsingAutofac(container);
 ```
 
-Then register some middleware:
+Then register some middleware (from the Autofac.Owin package) before the call to app.UseIdentityServer():
 ```csharp
-app.UseIdServerAutofacIntegrationMiddleware(); 
+app.UseAutofacMiddleware(container);
+// ...
+app.UseIdentityServer(options);
 ```
 
 ### More Complete Example
@@ -42,16 +44,11 @@ namespace MyIdServer
             var config = GetHttpConfiguration();
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
 
+
+            // Make sure this is registered before id server middleware in the pipeline.
+            app.UseAutofacMiddleware(container); 
+            
             var idSrvOptions = GetIdentityServerOptions(factory);
-
-            // Run any registered middleware within IdServer's context
-            idSrvOptions.PluginConfiguration = (appBuilder, options) =>
-            {
-                appBuilder.UseAutofacMiddleware(container);
-            };
-
-            // Make sure this is run before autofac middleware and before id server middleware in the pipeline
-            app.UseIdServerAutofacIntegrationMiddleware(); 
             app.UseIdentityServer(idSrvOptions);
 
             // Hook up webapi autofac stuff
