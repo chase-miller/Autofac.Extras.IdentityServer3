@@ -32,6 +32,7 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                             .WithTypeRegistrationHandler()
                             .RegisteringIdServerExtensionPointsExplicitly()
                             .ExcludingIdServerResolvableRegistrations()
+                            .HackingEventServiceForStartup()
                         ;
 
                     return optionsFunc?.Invoke(myOptions) ?? myOptions;

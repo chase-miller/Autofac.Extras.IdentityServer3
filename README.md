@@ -9,10 +9,9 @@ In your startup configuration, call a method to have the IdentityServer3 factory
 factory.ResolveUsingAutofac(container);
 ```
 
-Then register some middleware (from the Autofac.Owin package) before the call to app.UseIdentityServer():
+Use autofac middleware (from the Autofac.Owin package) before the call to app.UseIdentityServer():
 ```csharp
 app.UseAutofacMiddleware(container);
-// ...
 app.UseIdentityServer(options);
 ```
 
@@ -91,6 +90,28 @@ public class IdServerExtensionsModule : Module
     }
 }
 ```
+### Middleware ordering
+You may need more control over the ordering of your middleware registrations:
+1. If any of your middleware depends on IdentityServer3 dependencies (e.g. those created via `builder.RegisterAsIdServerResolvable<IdentityServerOptions>()`). 
+2. If you need your code to take control after IdentityServer3.
+3. If you need your code to take control in the middle of IdentityServer3's pipeline. 
+
+When doing this, you still need to create and add to the `OwinContext` an autofac `LifetimeScope` before IdentityServer takes control. Do this by calling `app.UseAutofacLifetimeScopeInjector()` **before** `app.UseIdentityServer()`. Then register your middleware after (or inside of via `PluginConfiguration`) IdentityServer3. 
+
+```csharp
+// Use autofac lifetime scope injector before registering any of our middleware (and before calling UseIdentityServer()).
+app.UseAutofacLifetimeScopeInjector(configuration.AutofacContainer);
+
+var idSrvOptions = GetIdentityServerOptions(factory);
+
+// Register our middleware inside of IdentityServer3's pipeline.
+idSrvOptions.PluginConfiguration = (appBuilder, options) =>
+    appBuilder.UseAutofacMiddleware(configuration.AutofacContainer);
+
+app.UseIdentityServer(idSrvOptions);
+```
+
+For more information on middleware ordering and autofac see https://autofaccn.readthedocs.io/en/latest/integration/owin.html#controlling-middleware-order. 
 
 ## How It Works
 Calling `factory.ResolveUsingAutofac(container)` will read the registrations contained on the `container` and create corresponding registrations with the factory. Unless registering as a singleton, dependencies are resolved using a factory func that:

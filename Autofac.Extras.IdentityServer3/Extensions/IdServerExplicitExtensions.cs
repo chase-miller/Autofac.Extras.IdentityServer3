@@ -67,10 +67,7 @@ namespace Autofac.Extras.IdentityServer3.Extensions
             switch (resolvedType)
             {
                 case Type t when t == typeof(IEventService):
-                    // IdServer does a bit of an odd thing during initialization where it resolves the <see cref="IEventService"/> outside of an http request. 
-                    // See https://github.com/IdentityServer/IdentityServer3/blob/93bc6bc9b536146b9e3fa0bed21d77283d07f788/source/Core/Configuration/AppBuilderExtensions/UseIdentityServerExtension.cs#L113
-                    // Hack the registration to support this.
-                    factory.EventService = Create<IEventService>(checkForMiddleware: false);
+                    factory.EventService = Create<IEventService>();
                     break;
                 case Type t when t == typeof(IUserService):
                     factory.UserService = Create<IUserService>();
@@ -156,9 +153,9 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                 default:
                     break;
 
-                Registration<T> Create<T>(bool checkForMiddleware = true) where T : class
+                Registration<T> Create<T>() where T : class
                 {
-                    return TypeRegistrationExtensions.CreateRegistration<T>(context: context, checkForMiddleware: checkForMiddleware);
+                    return TypeRegistrationExtensions.CreateRegistration<T>(context: context);
                 }
             }
         }
