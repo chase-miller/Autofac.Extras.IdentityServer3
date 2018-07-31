@@ -111,6 +111,8 @@ idSrvOptions.PluginConfiguration = (appBuilder, options) =>
 app.UseIdentityServer(idSrvOptions);
 ```
 
+For more information on middleware ordering and autofac see https://autofaccn.readthedocs.io/en/latest/integration/owin.html#controlling-middleware-order. 
+
 ## How It Works
 Calling `factory.ResolveUsingAutofac(container)` will read the registrations contained on the `container` and create corresponding registrations with the factory. Unless registering as a singleton, dependencies are resolved using a factory func that:
 
