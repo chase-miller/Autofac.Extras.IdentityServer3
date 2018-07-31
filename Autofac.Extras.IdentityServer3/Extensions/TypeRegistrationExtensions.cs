@@ -13,9 +13,6 @@ namespace Autofac.Extras.IdentityServer3.Extensions
 {
     public static class TypeRegistrationExtensions
     {
-        public const string CustomDisposeLifetimescopeKey = "IdServerAutofacIntegrationCore.CustomDisposeLifetimescopeKey";
-        public const string CustomDisposeLifetimescopeRegisteredKey = CustomDisposeLifetimescopeKey + "Registered";
-
         public static Options WithTypeRegistrationHandler(this Options options)
         {
             return options
