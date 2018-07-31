@@ -13,6 +13,8 @@ namespace Autofac.Extras.IdentityServer3.Extensions
 {
     public static class TypeRegistrationExtensions
     {
+        private static bool hackingEventServiceForStartupAlreadyExecuted = false;
+
         public static Options WithTypeRegistrationHandler(this Options options)
         {
             return options
@@ -142,7 +144,7 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                 return lifetimeScope;
 
             throw new ApplicationException(
-                $"Could not get autofac lifetime scope from owin context when trying to resolve {type}.");
+                $"Could not get autofac lifetime scope from owin context when trying to resolve {type}. Did you call appBuilder.UseAutofacMiddleware() (or appBuilder.UseAutofacLifetimeScopeInjector()) before appBuilder.UseIdentityServer() in your app's startup?");
         }
 
         public static void RegisterAsAutofacResolvable(this IdentityServerServiceFactory factory, Type type, Func<ILifetimeScope, object> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, object> resolveWithOwinContextFunc = null, string name = null, IContainer container = null, RegistrationContext context = null)
@@ -210,7 +212,7 @@ namespace Autofac.Extras.IdentityServer3.Extensions
         }
 
         /// <summary>
-        /// IdentityServer3 creates a fake owin context at startup to resolve IEventService. Use this to get around the fact that we don't have an autofac container yet.
+        /// IdentityServer3 creates a fake owin context at startup to resolve IEventService. Use this to get around the fact that we don't have an autofac lifetime scope added to the owin context.
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
@@ -219,19 +221,27 @@ namespace Autofac.Extras.IdentityServer3.Extensions
             return options.WithRegistrationHandlerFor<IEventService>(
                 (factory, context) =>
                 {
-                    factory.RegisterAsAutofacResolvable<IEventService>(resolveWithOwinContextFunc: owinContext =>
-                        {
-                            var lifetimeScope = owinContext.GetAutofacLifetimeScope();
-                            if (lifetimeScope != null)
-                                return lifetimeScope.Resolve<IEventService>();
+                    factory.EventService = CreateRegistration(resolveWithOwinContextFunc: owinContext =>
+                    {
+                        var lifetimeScope = owinContext.GetAutofacLifetimeScope();
+                        if (lifetimeScope != null)
+                            return lifetimeScope.Resolve<IEventService>();
 
-                            var startupScope = context.Container.BeginLifetimeScope(
-                                MatchingScopeLifetimeTags.RequestLifetimeScopeTag,
-                                b => b.RegisterInstance(owinContext).As<IOwinContext>()
-                            );
-                            owinContext.SetAutofacLifetimeScope(startupScope);
-                            return startupScope.Resolve<IEventService>();
-                        });
+                        if (hackingEventServiceForStartupAlreadyExecuted)
+                        {
+                            // This line should never be hit.
+                            throw new ApplicationException("Lifetimescope could not be found. Did you call appBuilder.UseAutofacMiddleware() (or appBuilder.UseAutofacLifetimeScopeInjector()) before appBuilder.UseIdentityServer() in your app's startup?");
+                        }
+
+                        var startupScope = context.Container.BeginLifetimeScope(
+                            MatchingScopeLifetimeTags.RequestLifetimeScopeTag,
+                            b => b.RegisterInstance(owinContext).As<IOwinContext>()
+                        );
+                        owinContext.SetAutofacLifetimeScope(startupScope);
+                        hackingEventServiceForStartupAlreadyExecuted = true;
+
+                        return startupScope.Resolve<IEventService>();
+                    });
                 },
                 100
             );
