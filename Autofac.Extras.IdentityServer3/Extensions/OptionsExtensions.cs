@@ -29,6 +29,30 @@ namespace Autofac.Extras.IdentityServer3.Extensions
             );
         }
 
+        /// <summary>
+        /// Includes a registration that matches by given predicate. Useful when "blanket" exclusions have been performed.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="predicate"></param>
+        /// <param name="priority"></param>
+        /// <returns></returns>
+        public static Options Including(this Options options, Predicate<RegistrationContext> predicate,
+            int? priority = null)
+        {
+            return options.WithRegistrationHandler(
+                predicate,
+                (factory, registrationContext) => factory.RegisterAsAutofacResolvable(registrationContext.ResolvedType, context: registrationContext),
+                priority
+            );
+        }
+
+        /// <summary>
+        /// Includes a registration where the resolved type is T. Useful when "blanket" exclusions have been performed.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="predicate"></param>
+        /// <param name="priority"></param>
+        /// <returns></returns>
         public static Options Including<T>(this Options options, int? priority = null) where T : class
         {
             return options.WithRegistrationHandlerFor<T>(
