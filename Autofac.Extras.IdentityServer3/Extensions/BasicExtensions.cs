@@ -17,13 +17,13 @@ namespace Autofac.Extras.IdentityServer3.Extensions
         /// <param name="container"></param>
         /// <param name="optionsFunc">Provides extension points to use during registration. See <see cref="Options"/> for details.</param>
         /// <param name="throwOnNoRegistrationHandlerFound">A flag indicating whether to throw an exception if no registration handler could be found matching a context.</param>
-        public static void ResolveUsingAutofac(
+        public static IdentityServerServiceFactory ResolveUsingAutofac(
             this IdentityServerServiceFactory factory,
             IContainer container,
             Func<Options, Options> optionsFunc = null,
             bool throwOnNoRegistrationHandlerFound = false)
         {
-            factory.ResolveUsingAutofacCore(
+            return factory.ResolveUsingAutofacCore(
                 container, 
                 options =>
                 {

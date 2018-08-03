@@ -23,7 +23,7 @@ namespace Autofac.Extras.IdentityServer3.Core
         /// <param name="container"></param>
         /// <param name="optionsFunc">Provides extension points to use during registration. See <see cref="Options"/> for details.</param>
         /// <param name="throwOnNoRegistrationHandlerFound">A flag indicating whether to throw an exception if no registration handler could be found matching a context.</param>
-        public static void ResolveUsingAutofacCore(
+        public static IdentityServerServiceFactory ResolveUsingAutofacCore(
             this IdentityServerServiceFactory factory, 
             IContainer container,
             Func<Options, Options> optionsFunc = null,
@@ -64,6 +64,8 @@ namespace Autofac.Extras.IdentityServer3.Core
                         throw new NoHandlerFoundException(registrationContext);
                 }
             }
+
+            return factory;
         }
 
         private static Type ResolveTypeFromService(IGrouping<Service, IComponentRegistration> serviceGrouping, List<TryResolveType> typeResolverFuncs)
