@@ -163,7 +163,7 @@ namespace Autofac.Extras.IdentityServer3.Extensions
         private static RegistrationMode ConvertMode(this RegistrationContext context)
         {
             if (context == null)
-                throw new ArgumentNullException(nameof(context), "Cannot determine RegistrationMode of null context is provided");
+                throw new ArgumentNullException(nameof(context), "Cannot determine RegistrationMode if null context is provided");
 
             if (!context.MatchingAutofacRegistrations.Any())
                 throw new ApplicationException("No registrations could be found on the given context.");
@@ -212,26 +212,28 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                 (factory, context) =>
                 {
                     factory.EventService = CreateRegistration(resolveWithOwinContextFunc: owinContext =>
-                    {
-                        var lifetimeScope = owinContext.GetAutofacLifetimeScope();
-                        if (lifetimeScope != null)
-                            return lifetimeScope.Resolve<IEventService>();
-
-                        if (hackingEventServiceForStartupAlreadyExecuted)
                         {
-                            // This line should never be hit.
-                            throw new ApplicationException("Lifetimescope could not be found. Did you call appBuilder.UseAutofacMiddleware() (or appBuilder.UseAutofacLifetimeScopeInjector()) before appBuilder.UseIdentityServer() in your app's startup?");
-                        }
+                            var lifetimeScope = owinContext.GetAutofacLifetimeScope();
+                            if (lifetimeScope != null)
+                                return lifetimeScope.Resolve<IEventService>();
 
-                        var startupScope = context.Container.BeginLifetimeScope(
-                            MatchingScopeLifetimeTags.RequestLifetimeScopeTag,
-                            b => b.RegisterInstance(owinContext).As<IOwinContext>()
-                        );
-                        owinContext.SetAutofacLifetimeScope(startupScope);
-                        hackingEventServiceForStartupAlreadyExecuted = true;
+                            if (hackingEventServiceForStartupAlreadyExecuted)
+                            {
+                                // This line should never be hit.
+                                throw new ApplicationException(
+                                    "Lifetimescope could not be found. Did you call appBuilder.UseAutofacMiddleware() (or appBuilder.UseAutofacLifetimeScopeInjector()) before appBuilder.UseIdentityServer() in your app's startup?");
+                            }
 
-                        return startupScope.Resolve<IEventService>();
-                    });
+                            var startupScope = context.Container.BeginLifetimeScope(
+                                MatchingScopeLifetimeTags.RequestLifetimeScopeTag,
+                                b => b.RegisterInstance(owinContext).As<IOwinContext>()
+                            );
+                            owinContext.SetAutofacLifetimeScope(startupScope);
+                            hackingEventServiceForStartupAlreadyExecuted = true;
+
+                            return startupScope.Resolve<IEventService>();
+                        },
+                        context: context);
                 },
                 100
             );
