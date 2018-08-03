@@ -68,9 +68,12 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                 context: context);
         }
 
-        public static CustomIdServerRegistration CreateRegistration(Type type, Func<ILifetimeScope, object> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, object> resolveWithOwinContextFunc = null, string name = null, RegistrationContext context = null)
+        public static CustomIdServerRegistration CreateRegistration(Type type, RegistrationContext context, Func<ILifetimeScope, object> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, object> resolveWithOwinContextFunc = null, string name = null)
         {
-            var mode = context?.ConvertMode() ?? RegistrationMode.InstancePerUse; // play it safe with InstancePerUse
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
+            var mode = context.ConvertMode(); // play it safe with InstancePerUse
             if (mode == RegistrationMode.Singleton)
             {
                 return new CustomIdServerRegistration(
@@ -92,10 +95,12 @@ namespace Autofac.Extras.IdentityServer3.Extensions
             };
         }
 
-        public static Registration<T> CreateRegistration<T>(Func<ILifetimeScope, T> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, T> resolveWithOwinContextFunc = null, string name = null, RegistrationContext context = null) where T : class
+        public static Registration<T> CreateRegistration<T>(RegistrationContext context, Func < ILifetimeScope, T> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, T> resolveWithOwinContextFunc = null, string name = null) where T : class
         {
-            var mode = context.ConvertMode(); 
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
 
+            var mode = context.ConvertMode(); 
             if (mode == RegistrationMode.Singleton)
                 // ReSharper disable once PossibleNullReferenceException
                 return new Registration<T>(ResolutionExtensions.Resolve<T>((IComponentContext) context.SingletonLifetimeScope), name)
@@ -108,6 +113,16 @@ namespace Autofac.Extras.IdentityServer3.Extensions
             {
                 Mode = mode
             };
+        }
+
+        public static void RegisterAsAutofacResolvable(this IdentityServerServiceFactory factory, Type type, RegistrationContext context, Func<ILifetimeScope, object> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, object> resolveWithOwinContextFunc = null, string name = null)
+        {
+            factory.Register(CreateRegistration(type, context, resolveWithLifetimeScopeFunc, resolveWithOwinContextFunc, name));
+        }
+
+        public static void RegisterAsAutofacResolvable<T>(this IdentityServerServiceFactory factory, RegistrationContext context, Func<ILifetimeScope, T> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, T> resolveWithOwinContextFunc = null, string name = null) where T : class
+        {
+            factory.Register(CreateRegistration(context, resolveWithLifetimeScopeFunc, resolveWithOwinContextFunc, name));
         }
 
         public static T ResolveUsingAutofac<T>(this IDependencyResolver dr, Func<ILifetimeScope, T> resolveWithAutofacFunc = null, Func<IOwinContext, T> resolveWithOwinContextFunc = null)
@@ -140,7 +155,7 @@ namespace Autofac.Extras.IdentityServer3.Extensions
             return resolved;
         }
 
-        public static ILifetimeScope GetLifetimeScopeHelper(this IOwinContext owinContext, Type type)
+        private static ILifetimeScope GetLifetimeScopeHelper(this IOwinContext owinContext, Type type)
         {
             var lifetimeScope = owinContext.GetAutofacLifetimeScope();
             if (lifetimeScope != null)
@@ -150,24 +165,8 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                 $"Could not get autofac lifetime scope from owin context when trying to resolve {type}. Did you call appBuilder.UseAutofacMiddleware() (or appBuilder.UseAutofacLifetimeScopeInjector()) before appBuilder.UseIdentityServer() in your app's startup?");
         }
 
-        public static void RegisterAsAutofacResolvable(this IdentityServerServiceFactory factory, Type type, Func<ILifetimeScope, object> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, object> resolveWithOwinContextFunc = null, string name = null, RegistrationContext context = null)
-        {
-            factory.Register(CreateRegistration(type, resolveWithLifetimeScopeFunc, resolveWithOwinContextFunc, name, context));
-        }
-
-        public static void RegisterAsAutofacResolvable<T>(this IdentityServerServiceFactory factory, Func<ILifetimeScope, T> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, T> resolveWithOwinContextFunc = null, string name = null, RegistrationContext context = null) where T : class
-        {
-            factory.Register(CreateRegistration(resolveWithLifetimeScopeFunc, resolveWithOwinContextFunc, name, context));
-        }
-
         private static RegistrationMode ConvertMode(this RegistrationContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context), "Cannot determine RegistrationMode if null context is provided");
-
-            if (!context.MatchingAutofacRegistrations.Any())
-                throw new ApplicationException("No registrations could be found on the given context.");
-
             var validLifetimes = context.MatchingAutofacRegistrations
                 .Select(r => ConvertFromLifetime(r.Lifetime, r.Sharing))
                 .Where(r => r.valid)
@@ -211,7 +210,7 @@ namespace Autofac.Extras.IdentityServer3.Extensions
             return options.WithRegistrationHandlerFor<IEventService>(
                 (factory, context) =>
                 {
-                    factory.EventService = CreateRegistration(resolveWithOwinContextFunc: owinContext =>
+                    factory.EventService = CreateRegistration(context, resolveWithOwinContextFunc: owinContext =>
                         {
                             var lifetimeScope = owinContext.GetAutofacLifetimeScope();
                             if (lifetimeScope != null)
@@ -232,8 +231,7 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                             hackingEventServiceForStartupAlreadyExecuted = true;
 
                             return startupScope.Resolve<IEventService>();
-                        },
-                        context: context);
+                        });
                 },
                 100
             );
