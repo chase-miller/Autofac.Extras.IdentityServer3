@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using Autofac.Core;
 using Autofac.Core.Lifetime;
 using Autofac.Extras.IdentityServer3.Core;
@@ -66,7 +68,7 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                 context: context);
         }
 
-        public static CustomIdServerRegistration CreateRegistration(Type type, Func<ILifetimeScope, object> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, object> resolveWithOwinContextFunc = null, string name = null, IContainer container = null, RegistrationContext context = null)
+        public static CustomIdServerRegistration CreateRegistration(Type type, Func<ILifetimeScope, object> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, object> resolveWithOwinContextFunc = null, string name = null, RegistrationContext context = null)
         {
             var mode = context?.ConvertMode() ?? RegistrationMode.InstancePerUse; // play it safe with InstancePerUse
             if (mode == RegistrationMode.Singleton)
@@ -83,16 +85,17 @@ namespace Autofac.Extras.IdentityServer3.Extensions
 
             return new CustomIdServerRegistration(
                 type,
-                dr => ResolveUsingAutofac(dr, type, resolveWithLifetimeScopeFunc, resolveWithOwinContextFunc, container ?? context?.Container),
+                dr => ResolveUsingAutofac(dr, type, resolveWithLifetimeScopeFunc, resolveWithOwinContextFunc),
                 name)
             {
                 Mode = mode
             };
         }
 
-        public static Registration<T> CreateRegistration<T>(Func<ILifetimeScope, T> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, T> resolveWithOwinContextFunc = null, string name = null, IContainer container = null, RegistrationContext context = null, bool checkForMiddleware = true) where T : class
+        public static Registration<T> CreateRegistration<T>(Func<ILifetimeScope, T> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, T> resolveWithOwinContextFunc = null, string name = null, RegistrationContext context = null) where T : class
         {
-            var mode = context?.ConvertMode() ?? RegistrationMode.InstancePerUse; // play it safe with InstancePerUse
+            var mode = context.ConvertMode(); 
+
             if (mode == RegistrationMode.Singleton)
                 // ReSharper disable once PossibleNullReferenceException
                 return new Registration<T>(ResolutionExtensions.Resolve<T>((IComponentContext) context.SingletonLifetimeScope), name)
@@ -101,20 +104,20 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                 };
 
             return new Registration<T>(
-                dr => dr.ResolveUsingAutofac<T>(resolveWithLifetimeScopeFunc, resolveWithOwinContextFunc, container ?? context?.Container, checkForMiddleware))
+                dr => dr.ResolveUsingAutofac<T>(resolveWithLifetimeScopeFunc, resolveWithOwinContextFunc))
             {
                 Mode = mode
             };
         }
 
-        public static T ResolveUsingAutofac<T>(this IDependencyResolver dr, Func<ILifetimeScope, T> resolveWithAutofacFunc = null, Func<IOwinContext, T> resolveWithOwinContextFunc = null, IContainer container = null, bool checkForMiddleware = true)
+        public static T ResolveUsingAutofac<T>(this IDependencyResolver dr, Func<ILifetimeScope, T> resolveWithAutofacFunc = null, Func<IOwinContext, T> resolveWithOwinContextFunc = null)
         {
             var owinContext = dr.Resolve<IOwinContext>();
 
             if (resolveWithOwinContextFunc != null)
                 return resolveWithOwinContextFunc(owinContext);
 
-            var lifetimeScope = owinContext.GetLifetimeScopeHelper(typeof(T), container, checkForMiddleware);
+            var lifetimeScope = owinContext.GetLifetimeScopeHelper(typeof(T));
 
             var resolved = resolveWithAutofacFunc != null
                 ? resolveWithAutofacFunc(lifetimeScope)
@@ -122,14 +125,14 @@ namespace Autofac.Extras.IdentityServer3.Extensions
             return resolved;
         }
 
-        public static object ResolveUsingAutofac(this IDependencyResolver dr, Type type, Func<ILifetimeScope, object> resolveWithAutofacFunc = null, Func<IOwinContext, object> resolveWithOwinContextFunc = null, IContainer container = null, bool checkForMiddleware = true)
+        public static object ResolveUsingAutofac(this IDependencyResolver dr, Type type, Func<ILifetimeScope, object> resolveWithAutofacFunc = null, Func<IOwinContext, object> resolveWithOwinContextFunc = null)
         {
             var owinContext = dr.Resolve<IOwinContext>();
 
             if (resolveWithOwinContextFunc != null)
                 return resolveWithOwinContextFunc(owinContext);
 
-            var lifetimeScope = owinContext.GetLifetimeScopeHelper(type, container, checkForMiddleware);
+            var lifetimeScope = owinContext.GetLifetimeScopeHelper(type);
 
             var resolved = resolveWithAutofacFunc != null
                 ? resolveWithAutofacFunc(lifetimeScope)
@@ -137,7 +140,7 @@ namespace Autofac.Extras.IdentityServer3.Extensions
             return resolved;
         }
 
-        public static ILifetimeScope GetLifetimeScopeHelper(this IOwinContext owinContext, Type type, IContainer container, bool checkForMiddleware = true)
+        public static ILifetimeScope GetLifetimeScopeHelper(this IOwinContext owinContext, Type type)
         {
             var lifetimeScope = owinContext.GetAutofacLifetimeScope();
             if (lifetimeScope != null)
@@ -147,48 +150,35 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                 $"Could not get autofac lifetime scope from owin context when trying to resolve {type}. Did you call appBuilder.UseAutofacMiddleware() (or appBuilder.UseAutofacLifetimeScopeInjector()) before appBuilder.UseIdentityServer() in your app's startup?");
         }
 
-        public static void RegisterAsAutofacResolvable(this IdentityServerServiceFactory factory, Type type, Func<ILifetimeScope, object> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, object> resolveWithOwinContextFunc = null, string name = null, IContainer container = null, RegistrationContext context = null)
+        public static void RegisterAsAutofacResolvable(this IdentityServerServiceFactory factory, Type type, Func<ILifetimeScope, object> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, object> resolveWithOwinContextFunc = null, string name = null, RegistrationContext context = null)
         {
-            factory.Register(CreateRegistration(type, resolveWithLifetimeScopeFunc, resolveWithOwinContextFunc, name, container, context));
+            factory.Register(CreateRegistration(type, resolveWithLifetimeScopeFunc, resolveWithOwinContextFunc, name, context));
         }
 
-        public static void RegisterAsAutofacResolvable<T>(this IdentityServerServiceFactory factory, Func<ILifetimeScope, T> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, T> resolveWithOwinContextFunc = null, string name = null, IContainer container = null, RegistrationContext context = null) where T : class
+        public static void RegisterAsAutofacResolvable<T>(this IdentityServerServiceFactory factory, Func<ILifetimeScope, T> resolveWithLifetimeScopeFunc = null, Func<IOwinContext, T> resolveWithOwinContextFunc = null, string name = null, RegistrationContext context = null) where T : class
         {
-            factory.Register(CreateRegistration(resolveWithLifetimeScopeFunc, resolveWithOwinContextFunc, name, container, context));
+            factory.Register(CreateRegistration(resolveWithLifetimeScopeFunc, resolveWithOwinContextFunc, name, context));
         }
 
-        public static RegistrationMode ConvertMode(this RegistrationContext context)
+        private static RegistrationMode ConvertMode(this RegistrationContext context)
         {
             if (context == null)
-                return RegistrationMode.InstancePerUse; // play it safe with InstancePerUse
+                throw new ArgumentNullException(nameof(context), "Cannot determine RegistrationMode of null context is provided");
 
-            var lifetimes = context.MatchingAutofacRegistrations.Select(r => ConvertFromLifetime(r.Lifetime, r.Sharing)).ToList();
-            if (!lifetimes.Any() || lifetimes.Distinct().Count() > 1)
-                return RegistrationMode.InstancePerUse; // play it safe with InstancePerUse
+            if (!context.MatchingAutofacRegistrations.Any())
+                throw new ApplicationException("No registrations could be found on the given context.");
 
-            return lifetimes.First();
+            var validLifetimes = context.MatchingAutofacRegistrations
+                .Select(r => ConvertFromLifetime(r.Lifetime, r.Sharing))
+                .Where(r => r.valid)
+                .Select(r => r.mode)
+                .OrderBy(mode => mode, RegistrationModeComparer.Instance) // order by "risky-ness" so that we choose the least risky
+                .ToList();
 
-            RegistrationMode ConvertFromLifetime(IComponentLifetime lifetime, InstanceSharing sharing)
-            {
-                var instancePerDependency = lifetime is RootScopeLifetime && sharing == InstanceSharing.None;
-                if (instancePerDependency)
-                    return RegistrationMode.InstancePerUse;
+            if (!validLifetimes.Any())
+                throw new ApplicationException($"No valid lifetimes could be found for the resolved type {context.ResolvedType}. Valid lifetimes include .SingleInstance(), .InstancePerDependency(), and .InstancePerRequest().");
 
-                var singleInstance = lifetime is RootScopeLifetime && sharing == InstanceSharing.Shared;
-                if (singleInstance)
-                    return RegistrationMode.Singleton;
-
-                var instancePerLifetimeScope = lifetime is CurrentScopeLifetime && sharing == InstanceSharing.Shared;
-                if (instancePerLifetimeScope)
-                    return RegistrationMode.InstancePerHttpRequest;
-
-                var asMatchingScopeLifetime = lifetime as MatchingScopeLifetime;
-                var instancePerRequest = sharing == InstanceSharing.Shared && asMatchingScopeLifetime?.TagsToMatch.All(ttm => ttm == MatchingScopeLifetimeTags.RequestLifetimeScopeTag) == true;
-                if (instancePerRequest)
-                    return RegistrationMode.InstancePerHttpRequest;
-
-                return RegistrationMode.InstancePerUse; // play it safe with InstancePerUse
-            }
+            return validLifetimes.First();
         }
 
         /// <summary>
@@ -207,7 +197,7 @@ namespace Autofac.Extras.IdentityServer3.Extensions
         public static Options RegisteringOnlyIdServerTypes(this Options options)
         {
             return options.Excluding(
-                context => context?.ResolvedType?.Namespace?.StartsWith(nameof(IdentityServer3)) == false
+                context => context?.ResolvedType?.Namespace?.StartsWith($"{nameof(IdentityServer3)}.") != true
             );
         }
 
@@ -245,6 +235,58 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                 },
                 100
             );
+        }
+
+        private static (RegistrationMode mode, bool valid) ConvertFromLifetime(IComponentLifetime lifetime, InstanceSharing sharing)
+        {
+            var instancePerDependency = lifetime is CurrentScopeLifetime && sharing == InstanceSharing.None;
+            if (instancePerDependency)
+                return (RegistrationMode.InstancePerUse, true);
+
+            var singleInstance = lifetime is RootScopeLifetime && sharing == InstanceSharing.Shared;
+            if (singleInstance)
+                return (RegistrationMode.Singleton, true);
+
+            var asMatchingScopeLifetime = lifetime as MatchingScopeLifetime;
+            var instancePerRequest = sharing == InstanceSharing.Shared && asMatchingScopeLifetime?.TagsToMatch.All(ttm => ttm == MatchingScopeLifetimeTags.RequestLifetimeScopeTag) == true;
+            if (instancePerRequest)
+                return (RegistrationMode.InstancePerHttpRequest, true);
+
+            var instancePerLifetimeScope = lifetime is CurrentScopeLifetime && sharing == InstanceSharing.Shared;
+            if (instancePerLifetimeScope)
+                return (default(RegistrationMode), false);
+
+            return (default(RegistrationMode), false);
+        }
+    }
+
+    internal class RegistrationModeComparer : IComparer<RegistrationMode>
+    {
+        public static readonly RegistrationModeComparer Instance = new RegistrationModeComparer();
+
+        public int Compare(RegistrationMode x, RegistrationMode y)
+        {
+            if (x == y) return 0;
+
+            var xInt = AsInt(x);
+            var yInt = AsInt(y);
+
+            return xInt > yInt ? 1 : -1;
+        }
+
+        private static int AsInt(RegistrationMode x)
+        {
+            switch (x)
+            {
+                case RegistrationMode.InstancePerUse: // this is the least risky because it will always use autofac to resolve
+                    return 1;
+                case RegistrationMode.InstancePerHttpRequest: // this is more risky because it will only use autofac to resolve on a given request
+                    return 2;
+                case RegistrationMode.Singleton: // this is most risky because it will only use autofac to resolve once
+                    return 3;
+                default:
+                    return 234;                 // I don't know what to think about this one
+            }
         }
     }
 

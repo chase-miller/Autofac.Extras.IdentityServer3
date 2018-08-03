@@ -31,6 +31,7 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                             .ResolvingByCastingToTypedService()
                             .WithTypeRegistrationHandler()
                             .RegisteringIdServerExtensionPointsExplicitly()
+                            .RegisteringOnlyIdServerTypes()
                             .ExcludingIdServerResolvableRegistrations()
                             .HackingEventServiceForStartup()
                         ;
