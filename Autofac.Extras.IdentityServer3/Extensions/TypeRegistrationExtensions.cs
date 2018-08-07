@@ -167,15 +167,24 @@ namespace Autofac.Extras.IdentityServer3.Extensions
 
         private static RegistrationMode ConvertMode(this RegistrationContext context)
         {
-            var validLifetimes = context.MatchingAutofacRegistrations
+            const string validLifetimeBlurb = "Valid lifetimes include .SingleInstance(), .InstancePerDependency(), and .InstancePerRequest().";
+
+            var lifetimes = context.MatchingAutofacRegistrations
                 .Select(r => ConvertFromLifetime(r.Lifetime, r.Sharing))
+                .ToList();
+
+            var invalidLifetimes = lifetimes.Where(r => !r.valid).ToList();
+            if (invalidLifetimes.Any())
+                throw new ApplicationException($"Invalid lifetimes found for the resolved type {context.ResolvedType}. {validLifetimeBlurb}");
+
+            var validLifetimes = lifetimes
                 .Where(r => r.valid)
                 .Select(r => r.mode)
                 .OrderBy(mode => mode, RegistrationModeComparer.Instance) // order by "risky-ness" so that we choose the least risky
                 .ToList();
 
             if (!validLifetimes.Any())
-                throw new ApplicationException($"No valid lifetimes could be found for the resolved type {context.ResolvedType}. Valid lifetimes include .SingleInstance(), .InstancePerDependency(), and .InstancePerRequest().");
+                throw new ApplicationException($"No valid lifetimes could be found for the resolved type {context.ResolvedType}. {validLifetimeBlurb}");
 
             return validLifetimes.First();
         }

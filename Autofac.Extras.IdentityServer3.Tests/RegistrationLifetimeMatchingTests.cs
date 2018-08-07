@@ -236,7 +236,7 @@ namespace Autofac.Extras.IdentityServer3.Tests
         }
 
         [Test]
-        public void GivenMixOfValidAndInvalid_ChooseValid()
+        public void GivenMixOfValidAndInvalid_ThenThrowException()
         {
             var builder = new ContainerBuilder();
 
@@ -251,14 +251,12 @@ namespace Autofac.Extras.IdentityServer3.Tests
             var container = builder.Build();
 
             var factory = new IdentityServerServiceFactory();
-            factory.ResolveUsingAutofac(container, options =>
+            Action resolveAction = () => factory.ResolveUsingAutofac(container, options =>
                 options
                     .Including<ISomeInterface>()
             );
 
-            var registrations = factory.Registrations.Where(r => r.DependencyType == typeof(ISomeInterface));
-            var registration = registrations.Single();
-            registration.Mode.Should().Be(RegistrationMode.InstancePerHttpRequest);
+            resolveAction.Should().Throw<ApplicationException>().Where(e => e.Message.Contains("lifetime"));
         }
     }
 
