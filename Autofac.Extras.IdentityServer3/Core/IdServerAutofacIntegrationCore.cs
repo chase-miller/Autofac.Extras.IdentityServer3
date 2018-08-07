@@ -184,5 +184,10 @@ namespace Autofac.Extras.IdentityServer3.Core
         {
             Context = context;
         }
+
+        public NoHandlerFoundException(string message, RegistrationContext context) : base(message)
+        {
+            Context = context;
+        }
     }
 }

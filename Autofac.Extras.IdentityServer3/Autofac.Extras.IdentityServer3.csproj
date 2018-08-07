@@ -64,6 +64,7 @@
     <Compile Include="Extensions\AutofacToIdServerExtensions.cs" />
     <Compile Include="Extensions\BasicExtensions.cs" />
     <Compile Include="Extensions\IdServerExplicitExtensions.cs" />
+    <Compile Include="Extensions\KeyedRegistrationExtensions.cs" />
     <Compile Include="Extensions\OptionsExtensions.cs" />
     <Compile Include="Extensions\TypeRegistrationExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

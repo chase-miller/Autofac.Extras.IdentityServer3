@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Autofac.Extras.IdentityServer3.Core;
 using IdentityServer3.Core.Configuration;
 
@@ -30,6 +31,8 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                     options = options
                         .ResolvingByCastingToTypedService()
                         .WithTypeRegistrationHandler()
+                        .ResolvingByCastingToKeyedService()
+                        .BlockingKeyedRegistrations()
                         .RegisteringIdServerExtensionPointsExplicitly()
                         .RegisteringOnlyIdServerTypes()
                         .ExcludingIdServerResolvableRegistrations()
