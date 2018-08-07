@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Autofac.Core;
+using Autofac.Extras.IdentityServer3.Extensions;
 using IdentityServer3.Core.Configuration;
 using IdentityServer3.Core.Services;
 using Microsoft.Owin;
@@ -50,7 +51,7 @@ namespace Autofac.Extras.IdentityServer3.Core
                     from service in registration.Services
                     group registration by service
                     into serviceGrouping
-                    select new RegistrationContext(serviceGrouping, ResolveTypeFromService(serviceGrouping, typeResolverFuncs), container, singletonLifetimeScope);
+                    select new RegistrationContext(serviceGrouping, ResolveTypeFromService(serviceGrouping, typeResolverFuncs), container, singletonLifetimeScope, options);
 
                 foreach (var registrationContext in registrationContexts)
                 {
@@ -91,6 +92,8 @@ namespace Autofac.Extras.IdentityServer3.Core
 
         public IdentityServerServiceFactory Factory { get; set; }
 
+        public IDictionary<object, object> Metatadata { get; set; } = new Dictionary<object, object>();
+
         public Options(IdentityServerServiceFactory factory)
         {
             Factory = factory;
@@ -122,29 +125,38 @@ namespace Autofac.Extras.IdentityServer3.Core
             TypeResolutionFuncs.Add(resolutionFunc);
             return this;
         }
+
+        public Options WithMetadata(object key, object val)
+        {
+            Metatadata.Add(key, val);
+            return this;
+        }
     }
 
     public class RegistrationContext
     {
         public RegistrationContext(IGrouping<Service, IComponentRegistration> serviceGrouping, Type type,
-            IContainer container, ILifetimeScope singletonLifetimeScope)
+            IContainer container, ILifetimeScope singletonLifetimeScope, Options options)
         {
             Container = container;
             AutofacService = serviceGrouping.Key;
             MatchingAutofacRegistrations = serviceGrouping;
             ResolvedType = type;
             SingletonLifetimeScope = singletonLifetimeScope;
+            Options = options;
         }
 
         public Service AutofacService { get; set; }
         public IEnumerable<IComponentRegistration> MatchingAutofacRegistrations { get; set; } = Enumerable.Empty<IComponentRegistration>();
         public Type ResolvedType { get; set; }
         public IContainer Container { get; set; }
+        public Options Options { get; set; }
 
         /// <summary>
         /// A lifetime scope created for the purpose of resolving singletons. This is disposed after all registrations have been (or attempted to have been) handled.
         /// </summary>
         public ILifetimeScope SingletonLifetimeScope { get; set; }
+
     }
 
     public class RegistrationHandler

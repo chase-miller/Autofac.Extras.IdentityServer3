@@ -51,6 +51,29 @@ namespace Autofac.Extras.IdentityServer3.Tests
         }
 
         [Test]
+        public void GivenTypeNotInIdServer3Namespace_AndRegisteringAllTypesSet_ThenRegister()
+        {
+            var builder = new ContainerBuilder();
+
+            builder.Register(cc => new FakeClaimsProviderImpl())
+                .As<IClaimsProvider>()
+                .InstancePerRequest();
+
+            var container = builder.Build();
+
+            var factory = new IdentityServerServiceFactory();
+            factory.ResolveUsingAutofac(container, options =>
+                options
+                    .RegisteringAllTypes()
+                    .Excluding<ILifetimeScope>()
+                    .Excluding<IComponentContext>()
+            );
+
+            factory.Registrations.Should()
+                .Contain(registration => registration.DependencyType == typeof(IClaimsProvider));
+        }
+
+        [Test]
         public void GivenIncludeOfExternalType_ThenRegister()
         {
             var builder = new ContainerBuilder();

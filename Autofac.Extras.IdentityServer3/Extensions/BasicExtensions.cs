@@ -24,19 +24,18 @@ namespace Autofac.Extras.IdentityServer3.Extensions
             bool throwOnNoRegistrationHandlerFound = false)
         {
             return factory.ResolveUsingAutofacCore(
-                container, 
+                container,
                 options =>
                 {
-                    var myOptions = options
-                            .ResolvingByCastingToTypedService()
-                            .WithTypeRegistrationHandler()
-                            .RegisteringIdServerExtensionPointsExplicitly()
-                            .RegisteringOnlyIdServerTypes()
-                            .ExcludingIdServerResolvableRegistrations()
-                            .HackingEventServiceForStartup()
-                        ;
+                    options = options
+                        .ResolvingByCastingToTypedService()
+                        .WithTypeRegistrationHandler()
+                        .RegisteringIdServerExtensionPointsExplicitly()
+                        .RegisteringOnlyIdServerTypes()
+                        .ExcludingIdServerResolvableRegistrations()
+                        .HackingEventServiceForStartup();
 
-                    return optionsFunc?.Invoke(myOptions) ?? myOptions;
+                    return optionsFunc?.Invoke(options) ?? options;
                 },
                 throwOnNoRegistrationHandlerFound
             );

@@ -205,8 +205,19 @@ namespace Autofac.Extras.IdentityServer3.Extensions
         public static Options RegisteringOnlyIdServerTypes(this Options options)
         {
             return options.Excluding(
-                context => context?.ResolvedType?.Namespace?.StartsWith($"{nameof(IdentityServer3)}.") != true
-            );
+                context =>
+                {
+                    var metadata = context.Options.Metatadata;
+                    if (metadata.ContainsKey("RegisteringAllTypes"))
+                        return false;
+
+                    return context?.ResolvedType?.Namespace?.StartsWith($"{nameof(IdentityServer3)}.") != true;
+                });
+        }
+
+        public static Options RegisteringAllTypes(this Options options)
+        {
+            return options.WithMetadata("RegisteringAllTypes", true);
         }
 
         /// <summary>
