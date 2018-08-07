@@ -211,7 +211,10 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                     if (metadata.ContainsKey("RegisteringAllTypes"))
                         return false;
 
-                    return context?.ResolvedType?.Namespace?.StartsWith($"{nameof(IdentityServer3)}.") != true;
+                    if (context.ResolvedType == null)
+                        return false;
+
+                    return context.ResolvedType.Namespace.StartsWith($"{nameof(IdentityServer3)}.") != true;
                 });
         }
 

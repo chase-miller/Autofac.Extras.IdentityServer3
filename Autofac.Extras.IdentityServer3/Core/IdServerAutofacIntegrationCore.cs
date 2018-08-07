@@ -10,6 +10,7 @@ using Microsoft.Owin;
 namespace Autofac.Extras.IdentityServer3.Core
 {
     public delegate bool TryResolveType(IGrouping<Service, IComponentRegistration> serviceGrouping, out Type type);
+
     public delegate void RegistrationAction(IdentityServerServiceFactory factory, RegistrationContext context);
 
     public static class IdServerAutofacIntegrationCore
@@ -28,7 +29,7 @@ namespace Autofac.Extras.IdentityServer3.Core
             this IdentityServerServiceFactory factory, 
             IContainer container,
             Func<Options, Options> optionsFunc = null,
-            bool throwOnNoRegistrationHandlerFound = false)
+            bool throwOnNoRegistrationHandlerFound = true)
         {
             // Get access to IdServer call context
             factory.Register(new Registration<IOwinContext>(resolver => new OwinContext(resolver.Resolve<OwinEnvironmentService>().Environment)));
@@ -58,11 +59,10 @@ namespace Autofac.Extras.IdentityServer3.Core
                     var registrationHandler =
                         registrationHandlers.LastOrDefault(cr => cr.Predicate(registrationContext));
 
-                    if (registrationHandler != null)
-                        registrationHandler.RegistrationAction?.Invoke(factory, registrationContext);
-
-                    else if (throwOnNoRegistrationHandlerFound)
+                    if (throwOnNoRegistrationHandlerFound && registrationHandler?.RegistrationAction == null)
                         throw new NoHandlerFoundException(registrationContext);
+
+                    registrationHandler?.RegistrationAction?.Invoke(factory, registrationContext);
                 }
             }
 

@@ -65,6 +65,7 @@
     <Compile Include="DataProtectorImpl.cs" />
     <Compile Include="IdentityServer3FakeType.cs" />
     <Compile Include="OnlyRegisteringIdServerTypesTests.cs" />
+    <Compile Include="RegistrationHandlerNotFoundTests.cs" />
     <Compile Include="RegistrationLifetimeMatchingTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

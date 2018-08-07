@@ -61,18 +61,19 @@ namespace Autofac.Extras.IdentityServer3.Extensions
             );
         }
 
-        public static Options ExcludingAll(this Options options)
-        {
-            return options.Excluding(
-                (RegistrationContext _) => true 
-            );
-        }
-
         public static Options Excluding(this Options options, Predicate<RegistrationContext> predicate, int? priority = null)
         {
             return options.WithRegistrationHandler(
                 predicate,
-                (a, b) => { } // no-op
+                (a, b) => { }, // no-op
+                priority
+            );
+        }
+
+        public static Options ExcludingAll(this Options options)
+        {
+            return options.Excluding(
+                (RegistrationContext _) => true 
             );
         }
 

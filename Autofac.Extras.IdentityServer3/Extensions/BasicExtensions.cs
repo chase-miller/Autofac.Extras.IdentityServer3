@@ -21,7 +21,7 @@ namespace Autofac.Extras.IdentityServer3.Extensions
             this IdentityServerServiceFactory factory,
             IContainer container,
             Func<Options, Options> optionsFunc = null,
-            bool throwOnNoRegistrationHandlerFound = false)
+            bool throwOnNoRegistrationHandlerFound = true)
         {
             return factory.ResolveUsingAutofacCore(
                 container,
