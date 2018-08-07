@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -135,17 +134,4 @@ namespace Autofac.Extras.IdentityServer3.Tests
 
     class SomeOtherTypeImpl : ISomeOtherType
     { }
-
-    class DataProtectorImpl : IDataProtector
-    {
-        public byte[] Protect(byte[] data, string entropy = "")
-        {
-            throw new NotImplementedException();
-        }
-
-        public byte[] Unprotect(byte[] data, string entropy = "")
-        {
-            throw new NotImplementedException();
-        }
-    }
 }

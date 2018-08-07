@@ -19,19 +19,16 @@ namespace Autofac.Extras.IdentityServer3.Tests
         {
             var builder = new ContainerBuilder();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .InstancePerRequest();
 
             var container = builder.Build();
 
             var factory = new IdentityServerServiceFactory();
-            factory.ResolveUsingAutofac(container, options => 
-                options
-                    .Including<ISomeInterface>()
-            );
+            factory.ResolveUsingAutofac(container);
 
-            var registrations = factory.Registrations.Where(r => r.DependencyType == typeof(ISomeInterface));
+            var registrations = factory.Registrations.Where(r => r.DependencyType == typeof(IDataProtector));
             var registration = registrations.Single();
 
             registration.Mode.Should().Be(RegistrationMode.InstancePerHttpRequest);
@@ -42,19 +39,16 @@ namespace Autofac.Extras.IdentityServer3.Tests
         {
             var builder = new ContainerBuilder();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .InstancePerDependency();
 
             var container = builder.Build();
 
             var factory = new IdentityServerServiceFactory();
-            factory.ResolveUsingAutofac(container, options =>
-                options
-                    .Including<ISomeInterface>()
-            );
+            factory.ResolveUsingAutofac(container);
 
-            var registrations = factory.Registrations.Where(r => r.DependencyType == typeof(ISomeInterface));
+            var registrations = factory.Registrations.Where(r => r.DependencyType == typeof(IDataProtector));
             var registration = registrations.Single();
 
             registration.Mode.Should().Be(RegistrationMode.InstancePerUse);
@@ -65,19 +59,16 @@ namespace Autofac.Extras.IdentityServer3.Tests
         {
             var builder = new ContainerBuilder();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .SingleInstance();
 
             var container = builder.Build();
 
             var factory = new IdentityServerServiceFactory();
-            factory.ResolveUsingAutofac(container, options =>
-                options
-                    .Including<ISomeInterface>()
-            );
+            factory.ResolveUsingAutofac(container);
 
-            var registrations = factory.Registrations.Where(r => r.DependencyType == typeof(ISomeInterface));
+            var registrations = factory.Registrations.Where(r => r.DependencyType == typeof(IDataProtector));
             var registration = registrations.Single();
 
             registration.Mode.Should().Be(RegistrationMode.Singleton);
@@ -88,27 +79,24 @@ namespace Autofac.Extras.IdentityServer3.Tests
         {
             var builder = new ContainerBuilder();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .InstancePerRequest();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .InstancePerDependency();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .SingleInstance();
 
             var container = builder.Build();
 
             var factory = new IdentityServerServiceFactory();
-            factory.ResolveUsingAutofac(container, options =>
-                options
-                    .Including<ISomeInterface>()
-            );
+            factory.ResolveUsingAutofac(container);
 
-            var registrations = factory.Registrations.Where(r => r.DependencyType == typeof(ISomeInterface));
+            var registrations = factory.Registrations.Where(r => r.DependencyType == typeof(IDataProtector));
             var registration = registrations.Single();
 
             registration.Mode.Should().Be(RegistrationMode.InstancePerUse);
@@ -119,23 +107,20 @@ namespace Autofac.Extras.IdentityServer3.Tests
         {
             var builder = new ContainerBuilder();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .InstancePerRequest();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .InstancePerDependency();
 
             var container = builder.Build();
 
             var factory = new IdentityServerServiceFactory();
-            factory.ResolveUsingAutofac(container, options =>
-                options
-                    .Including<ISomeInterface>()
-            );
+            factory.ResolveUsingAutofac(container);
 
-            var registrations = factory.Registrations.Where(r => r.DependencyType == typeof(ISomeInterface));
+            var registrations = factory.Registrations.Where(r => r.DependencyType == typeof(IDataProtector));
             var registration = registrations.Single();
 
             registration.Mode.Should().Be(RegistrationMode.InstancePerUse);
@@ -146,23 +131,20 @@ namespace Autofac.Extras.IdentityServer3.Tests
         {
             var builder = new ContainerBuilder();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .InstancePerRequest();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .SingleInstance();
 
             var container = builder.Build();
 
             var factory = new IdentityServerServiceFactory();
-            factory.ResolveUsingAutofac(container, options =>
-                options
-                    .Including<ISomeInterface>()
-            );
+            factory.ResolveUsingAutofac(container);
 
-            var registrations = factory.Registrations.Where(r => r.DependencyType == typeof(ISomeInterface));
+            var registrations = factory.Registrations.Where(r => r.DependencyType == typeof(IDataProtector));
             var registration = registrations.Single();
 
             registration.Mode.Should().Be(RegistrationMode.InstancePerHttpRequest);
@@ -173,23 +155,20 @@ namespace Autofac.Extras.IdentityServer3.Tests
         {
             var builder = new ContainerBuilder();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .InstancePerDependency();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .SingleInstance();
 
             var container = builder.Build();
 
             var factory = new IdentityServerServiceFactory();
-            factory.ResolveUsingAutofac(container, options =>
-                options
-                    .Including<ISomeInterface>()
-            );
+            factory.ResolveUsingAutofac(container);
 
-            var registrations = factory.Registrations.Where(r => r.DependencyType == typeof(ISomeInterface));
+            var registrations = factory.Registrations.Where(r => r.DependencyType == typeof(IDataProtector));
             var registration = registrations.Single();
 
             registration.Mode.Should().Be(RegistrationMode.InstancePerUse);
@@ -200,17 +179,14 @@ namespace Autofac.Extras.IdentityServer3.Tests
         {
             var builder = new ContainerBuilder();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .InstancePerLifetimeScope();
 
             var container = builder.Build();
 
             var factory = new IdentityServerServiceFactory();
-            Action resolveAction = () => factory.ResolveUsingAutofac(container, options =>
-                options
-                    .Including<ISomeInterface>()
-            );
+            Action resolveAction = () => factory.ResolveUsingAutofac(container);
 
             resolveAction.Should().Throw<ApplicationException>().Where(e => e.Message.Contains("lifetime"));
         }
@@ -220,17 +196,14 @@ namespace Autofac.Extras.IdentityServer3.Tests
         {
             var builder = new ContainerBuilder();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .InstancePerMatchingLifetimeScope("sometag");
 
             var container = builder.Build();
 
             var factory = new IdentityServerServiceFactory();
-            Action resolveAction = () => factory.ResolveUsingAutofac(container, options =>
-                options
-                    .Including<ISomeInterface>()
-            );
+            Action resolveAction = () => factory.ResolveUsingAutofac(container);
 
             resolveAction.Should().Throw<ApplicationException>().Where(e => e.Message.Contains("lifetime"));
         }
@@ -240,26 +213,20 @@ namespace Autofac.Extras.IdentityServer3.Tests
         {
             var builder = new ContainerBuilder();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .InstancePerRequest();
 
-            builder.Register(cc => new SomeImpl())
-                .As<ISomeInterface>()
+            builder.Register(cc => new DataProtectorImpl())
+                .As<IDataProtector>()
                 .InstancePerLifetimeScope();
 
             var container = builder.Build();
 
             var factory = new IdentityServerServiceFactory();
-            Action resolveAction = () => factory.ResolveUsingAutofac(container, options =>
-                options
-                    .Including<ISomeInterface>()
-            );
+            Action resolveAction = () => factory.ResolveUsingAutofac(container);
 
             resolveAction.Should().Throw<ApplicationException>().Where(e => e.Message.Contains("lifetime"));
         }
     }
-
-    public interface ISomeInterface { }
-    public class SomeImpl : ISomeInterface { }
 }
