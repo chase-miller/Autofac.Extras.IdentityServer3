@@ -131,6 +131,8 @@ Autofac lifetime scopes are matched up with factory scopes as follows:
 | InstancePerLifetimeScope | * Throws Exception |
 | * **Anything Else** | * Throws Exception |
 
+Each registration will be added to the factory using `factory.Register()` unless a property exists off the factory (e.g. `factory.EventService`) in which case the property will be set. 
+
 ### Type Filtering
 As mentioned above, by default only types in the `IdentityServer3.*` namespace will be registered with the factory. The rationale is that IdentityServer3 only provides hooks that use types in this namespace. 
 
