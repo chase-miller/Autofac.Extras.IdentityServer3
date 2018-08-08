@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Autofac.Extras.IdentityServer3.Core;
 using IdentityServer3.Core.Configuration;
 
@@ -17,25 +18,27 @@ namespace Autofac.Extras.IdentityServer3.Extensions
         /// <param name="container"></param>
         /// <param name="optionsFunc">Provides extension points to use during registration. See <see cref="Options"/> for details.</param>
         /// <param name="throwOnNoRegistrationHandlerFound">A flag indicating whether to throw an exception if no registration handler could be found matching a context.</param>
-        public static void ResolveUsingAutofac(
+        public static IdentityServerServiceFactory ResolveUsingAutofac(
             this IdentityServerServiceFactory factory,
             IContainer container,
             Func<Options, Options> optionsFunc = null,
-            bool throwOnNoRegistrationHandlerFound = false)
+            bool throwOnNoRegistrationHandlerFound = true)
         {
-            factory.ResolveUsingAutofacCore(
-                container, 
+            return factory.ResolveUsingAutofacCore(
+                container,
                 options =>
                 {
-                    var myOptions = options
-                            .ResolvingByCastingToTypedService()
-                            .WithTypeRegistrationHandler()
-                            .RegisteringIdServerExtensionPointsExplicitly()
-                            .ExcludingIdServerResolvableRegistrations()
-                            .HackingEventServiceForStartup()
-                        ;
+                    options = options
+                        .ResolvingByCastingToTypedService()
+                        .WithTypeRegistrationHandler()
+                        .ResolvingByCastingToKeyedService()
+                        .BlockingKeyedRegistrations()
+                        .RegisteringIdServerExtensionPointsExplicitly()
+                        .RegisteringOnlyIdServerTypes()
+                        .ExcludingIdServerResolvableRegistrations()
+                        .HackingEventServiceForStartup();
 
-                    return optionsFunc?.Invoke(myOptions) ?? myOptions;
+                    return optionsFunc?.Invoke(options) ?? options;
                 },
                 throwOnNoRegistrationHandlerFound
             );

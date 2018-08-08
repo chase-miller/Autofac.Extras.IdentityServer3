@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Autofac.Extras.IdentityServer3", "Autofac.Extras.IdentityServer3\Autofac.Extras.IdentityServer3.csproj", "{3340DD71-2975-42E1-BE8C-EFD78AB825DA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Autofac.Extras.IdentityServer3.Tests", "Autofac.Extras.IdentityServer3.Tests\Autofac.Extras.IdentityServer3.Tests.csproj", "{9B2F26FD-6228-4888-90C6-C902D314CA24}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{3340DD71-2975-42E1-BE8C-EFD78AB825DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3340DD71-2975-42E1-BE8C-EFD78AB825DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3340DD71-2975-42E1-BE8C-EFD78AB825DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B2F26FD-6228-4888-90C6-C902D314CA24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B2F26FD-6228-4888-90C6-C902D314CA24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B2F26FD-6228-4888-90C6-C902D314CA24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B2F26FD-6228-4888-90C6-C902D314CA24}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

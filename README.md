@@ -15,7 +15,7 @@ app.UseAutofacMiddleware(container);
 app.UseIdentityServer(options);
 ```
 
-### More Complete Example
+### Example
 
 ```csharp
 [assembly: OwinStartup(typeof(Startup))]
@@ -114,7 +114,7 @@ app.UseIdentityServer(idSrvOptions);
 For more information on middleware ordering and autofac see https://autofaccn.readthedocs.io/en/latest/integration/owin.html#controlling-middleware-order. 
 
 ## How It Works
-Calling `factory.ResolveUsingAutofac(container)` will read the registrations contained on the `container` and create corresponding registrations with the factory. Unless registering as a singleton, dependencies are resolved using a factory func that:
+Calling `factory.ResolveUsingAutofac(container)` will read the registrations contained on the `container` and create corresponding registrations with the factory. By default only types in the `IdentityServer3.*` namespace will be read. Unless registering as a singleton, dependencies are resolved using a factory func that:
 
 1. Resolves the `IOwinContext`. E.g. `dr.Resolve<IOwinContext>()`. 
 2. Gets the autofac scope associated with the current IOwinContext using the `IOwinContext.GetAutofacLifetimeScope()` extension method.
@@ -128,23 +128,37 @@ Autofac lifetime scopes are matched up with factory scopes as follows:
 | SingleInstance | Singleton |
 | InstancePerDependency | InstancePerUse |
 | InstancePerRequest | InstancePerHttpRequest |
-| InstancePerLifetimeScope | InstancePerHttpRequest |
-| * **Anything Else** | InstancePerUse |
+| InstancePerLifetimeScope | * Throws Exception |
+| * **Anything Else** | * Throws Exception |
 
-### Performance
-The process outlined above may add a bit of overhead when processing a request, but it should be negligible (example statistics are welcomed :-)).
+Each registration will be added to the factory using `factory.Register()` unless a property exists off the factory (e.g. `factory.EventService`) in which case the property will be set. 
 
-Another note about performance: all autofac registrations you create (for which a handler exists) will create a registration in IdentityServer3. Internally, IdentityServer3 uses autofac. This means that there will be registrations in IdentityServer3 that are never actually used. Aside from the memory consumption of the registration, I'm fairly certain there isn't a cost to these extra registrations as autofac only resolves a registration when needed.
+### Type Filtering
+As mentioned above, by default only types in the `IdentityServer3.*` namespace will be registered with the factory. The rationale is that IdentityServer3 only provides hooks that use types in this namespace. 
 
-That said, there is an extension method you can call that restrics registrations to only types in the `IdentityServer3` namespace. This is largely untested, and I don't know exactly the results.
+"But you're wrong" you say? Use the `Including<T>()` method. 
 
 ```csharp
 factory.ResolveUsingAutofac(container,
                 options => options
-                    .RegisteringOnlyIdServerTypes()
+                    .Including<ISomeTypeIdentityServerUses>()
                     // other handlers...
             );
 ```
+
+#### Falling back to V2 behavior
+If you'd rather register all types, including those outside `IdentityServer3.*`, use the `RegisteringAllTypes()` method.
+
+```csharp
+factory.ResolveUsingAutofac(container,
+                options => options
+                    .RegisteringAllTypes()
+                    // other handlers...
+            );
+```
+
+### Using Facotry Extension Methods
+If you'd like a type to be registered using a factory extension method such as `factory.ConfigureClientStoreCache()`, use the `options.WithRegistrationHandler()` extension. See the [example below](#example-1).
 
 ## Extension Points
 There are two primary extension points provided off the `Options` object:
@@ -158,10 +172,8 @@ Note that some of these methods are actually extension methods off of the two ex
 ```csharp
 factory.ResolveUsingAutofac(container,
                 options => options
-                    .ExcludingControllers()
-                    .ExcludingOwinMiddleware()
                     .HandlingClientStoreCache()
-                    .UsingInstanceIfNotResolvable<ILogger>(logger)
+                    .RegisteringOperationalServices()
             );
 ```
 
@@ -169,17 +181,7 @@ And the corresponding extension methods:
 
 ```csharp
 public static class IdServerAutofacExtensions
-    {
-        public static Options ExcludingControllers(this Options options)
-        {
-            return options.ExcludingTypeAssignableTo<ApiController>();
-        }
-
-        public static Options ExcludingOwinMiddleware(this Options options)
-        {
-            return options.ExcludingTypeAssignableTo<OwinMiddleware>();
-        }
-    
+    {   
         public static Options HandlingClientStoreCache(this Options options)
         {
             return options.WithRegistrationHandlerFor<ICache<Client>>(
@@ -189,6 +191,15 @@ public static class IdServerAutofacExtensions
                     serviceFactory.ClientStore = new Registration<IClientStore>(dr => dr.ResolveUsingAutofac<IClientStore>(container: context.Container));
                     serviceFactory.ConfigureClientStoreCache(registration);
                 }
+            );
+        }
+        
+        public static Options RegisteringOperationalServices(this Options options)
+        {
+            return options.WithRegistrationHandler(
+                context => context.ResolvedType == typeof(EntityFrameworkServiceOptions) && 
+                           context.MatchingAutofacRegistrations.Any(r => r.Metadata.ContainsKey("RegisterOperationalServices")),
+                (factory, context) => factory.RegisterOperationalServices(context.SingletonLifetimeScope.Resolve<EntityFrameworkServiceOptions>())
             );
         }
     }

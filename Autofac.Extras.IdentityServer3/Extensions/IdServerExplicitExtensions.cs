@@ -140,15 +140,15 @@ namespace Autofac.Extras.IdentityServer3.Extensions
                     break;
                 case Type t when t == typeof(ICustomGrantValidator) || t == typeof(IEnumerable<ICustomGrantValidator>):
                     factory.CustomGrantValidators = new List<Registration<ICustomGrantValidator>>();
-                    factory.RegisterAsAutofacResolvable<IEnumerable<ICustomGrantValidator>>(container: context.Container);
+                    factory.RegisterAsAutofacResolvable<IEnumerable<ICustomGrantValidator>>(context: context);
                     break;
                 case Type t when t == typeof(ISecretParser) || t == typeof(IEnumerable<ISecretParser>):
                     factory.SecretParsers = new List<Registration<ISecretParser>>();
-                    factory.RegisterAsAutofacResolvable<IEnumerable<ISecretParser>>(container: context.Container);
+                    factory.RegisterAsAutofacResolvable<IEnumerable<ISecretParser>>(context: context);
                     break;
                 case Type t when t == typeof(ISecretValidator) || t == typeof(IEnumerable<ISecretValidator>):
                     factory.SecretValidators = new List<Registration<ISecretValidator>>();
-                    factory.RegisterAsAutofacResolvable<IEnumerable<ISecretValidator>>(container: context.Container);
+                    factory.RegisterAsAutofacResolvable<IEnumerable<ISecretValidator>>(context: context);
                     break;
                 default:
                     break;

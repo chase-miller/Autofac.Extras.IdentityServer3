@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Autofac.Core;
+using Autofac.Extras.IdentityServer3.Extensions;
 using IdentityServer3.Core.Configuration;
 using IdentityServer3.Core.Services;
 using Microsoft.Owin;
@@ -9,6 +10,7 @@ using Microsoft.Owin;
 namespace Autofac.Extras.IdentityServer3.Core
 {
     public delegate bool TryResolveType(IGrouping<Service, IComponentRegistration> serviceGrouping, out Type type);
+
     public delegate void RegistrationAction(IdentityServerServiceFactory factory, RegistrationContext context);
 
     public static class IdServerAutofacIntegrationCore
@@ -23,11 +25,11 @@ namespace Autofac.Extras.IdentityServer3.Core
         /// <param name="container"></param>
         /// <param name="optionsFunc">Provides extension points to use during registration. See <see cref="Options"/> for details.</param>
         /// <param name="throwOnNoRegistrationHandlerFound">A flag indicating whether to throw an exception if no registration handler could be found matching a context.</param>
-        public static void ResolveUsingAutofacCore(
+        public static IdentityServerServiceFactory ResolveUsingAutofacCore(
             this IdentityServerServiceFactory factory, 
             IContainer container,
             Func<Options, Options> optionsFunc = null,
-            bool throwOnNoRegistrationHandlerFound = false)
+            bool throwOnNoRegistrationHandlerFound = true)
         {
             // Get access to IdServer call context
             factory.Register(new Registration<IOwinContext>(resolver => new OwinContext(resolver.Resolve<OwinEnvironmentService>().Environment)));
@@ -50,20 +52,21 @@ namespace Autofac.Extras.IdentityServer3.Core
                     from service in registration.Services
                     group registration by service
                     into serviceGrouping
-                    select new RegistrationContext(serviceGrouping, ResolveTypeFromService(serviceGrouping, typeResolverFuncs), container, singletonLifetimeScope);
+                    select new RegistrationContext(serviceGrouping, ResolveTypeFromService(serviceGrouping, typeResolverFuncs), container, singletonLifetimeScope, options);
 
                 foreach (var registrationContext in registrationContexts)
                 {
                     var registrationHandler =
                         registrationHandlers.LastOrDefault(cr => cr.Predicate(registrationContext));
 
-                    if (registrationHandler != null)
-                        registrationHandler.RegistrationAction?.Invoke(factory, registrationContext);
-
-                    else if (throwOnNoRegistrationHandlerFound)
+                    if (throwOnNoRegistrationHandlerFound && registrationHandler?.RegistrationAction == null)
                         throw new NoHandlerFoundException(registrationContext);
+
+                    registrationHandler?.RegistrationAction?.Invoke(factory, registrationContext);
                 }
             }
+
+            return factory;
         }
 
         private static Type ResolveTypeFromService(IGrouping<Service, IComponentRegistration> serviceGrouping, List<TryResolveType> typeResolverFuncs)
@@ -88,6 +91,8 @@ namespace Autofac.Extras.IdentityServer3.Core
         public readonly List<TryResolveType> TypeResolutionFuncs = new List<TryResolveType>();
 
         public IdentityServerServiceFactory Factory { get; set; }
+
+        public IDictionary<object, object> Metatadata { get; set; } = new Dictionary<object, object>();
 
         public Options(IdentityServerServiceFactory factory)
         {
@@ -120,29 +125,38 @@ namespace Autofac.Extras.IdentityServer3.Core
             TypeResolutionFuncs.Add(resolutionFunc);
             return this;
         }
+
+        public Options WithMetadata(object key, object val)
+        {
+            Metatadata.Add(key, val);
+            return this;
+        }
     }
 
     public class RegistrationContext
     {
         public RegistrationContext(IGrouping<Service, IComponentRegistration> serviceGrouping, Type type,
-            IContainer container, ILifetimeScope singletonLifetimeScope)
+            IContainer container, ILifetimeScope singletonLifetimeScope, Options options)
         {
             Container = container;
             AutofacService = serviceGrouping.Key;
             MatchingAutofacRegistrations = serviceGrouping;
             ResolvedType = type;
             SingletonLifetimeScope = singletonLifetimeScope;
+            Options = options;
         }
 
         public Service AutofacService { get; set; }
         public IEnumerable<IComponentRegistration> MatchingAutofacRegistrations { get; set; } = Enumerable.Empty<IComponentRegistration>();
         public Type ResolvedType { get; set; }
         public IContainer Container { get; set; }
+        public Options Options { get; set; }
 
         /// <summary>
         /// A lifetime scope created for the purpose of resolving singletons. This is disposed after all registrations have been (or attempted to have been) handled.
         /// </summary>
         public ILifetimeScope SingletonLifetimeScope { get; set; }
+
     }
 
     public class RegistrationHandler
@@ -167,6 +181,11 @@ namespace Autofac.Extras.IdentityServer3.Core
         public RegistrationContext Context { get; }
 
         public NoHandlerFoundException(RegistrationContext context) : base("No registration handler found for this context")
+        {
+            Context = context;
+        }
+
+        public NoHandlerFoundException(string message, RegistrationContext context) : base(message)
         {
             Context = context;
         }
