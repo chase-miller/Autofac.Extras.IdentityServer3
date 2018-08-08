@@ -180,7 +180,7 @@ factory.ResolveUsingAutofac(container,
             );
 ```
 
-### Using Facotry Extension Methods
+### Using Factory Extension Methods
 If you'd like a type to be registered using a factory extension method such as `factory.ConfigureClientStoreCache()`, use the `options.WithRegistrationHandler()` extension. See the [example below](#example-1).
 
 ## Extension Points
