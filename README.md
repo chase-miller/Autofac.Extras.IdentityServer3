@@ -146,6 +146,29 @@ factory.ResolveUsingAutofac(container,
             );
 ```
 
+One more thing: dependencies of your `IdentityServer3` extensions (e.g. `IUserService`) need not be added to the factory. Since the registrations added to the factory simply ask our autofac container to resolve, the dependencies only need to be registered with autofac. 
+
+For example:
+```csharp
+public class IdServerExtensionsModule : Module
+{
+    protected override void Load(ContainerBuilder builder)
+    {
+        // This registration will NOT be added to the factory, but will still be used when resolving the next registration.
+        builder.RegisterType<SomeDependency>()
+            .As<ISomeDependency>()
+            .InstancePerLifetimeScope(); // lifetime scope is valid here because this isn't added to the factory
+        
+        // This registration will be added to the factory
+        builder.Register(cc => new UserService(cc.Resolve<ISomeDependency>())
+            .As<IUserService>()
+            .InstancePerRequest();
+        
+        // ...
+    }
+}
+```
+
 #### Falling back to V2 behavior
 If you'd rather register all types, including those outside `IdentityServer3.*`, use the `RegisteringAllTypes()` method.
 
